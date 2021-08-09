@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
-const Joi = require('joi');
+const { campgroundSchema } = require('./schemas');
 const Campground = require('./models/campground');
 const ejsMate = require('ejs-mate');
 const catchAsync = require('./utils/catchAsync');
@@ -30,6 +30,17 @@ mongoose.set('useFindAndModify', false); //avoid deprecation warnings
 app.use(express.urlencoded({ extended: true })); //parses data from HTML FORMS
 app.use(methodOverride('_method')); //prefix for method-override URL
 
+//Joi validation
+const validateCampground = (req, res, next) => {
+	const { error } = campgroundSchema.validate(req.body);
+	if (error) {
+		const msg = error.details.map(el => el.message).join(',');
+		throw new ExpressError(msg, 400);
+	} else {
+		next();
+	}
+};
+
 app.get('/', (req, res) => {
 	res.render('home');
 });
@@ -56,23 +67,8 @@ app.get(
 
 app.post(
 	'/campgrounds',
+	validateCampground,
 	catchAsync(async (req, res, next) => {
-		//Joi validation
-		const campgroundSchema = Joi.object({
-			campground: Joi.object({
-				title: Joi.string().required(),
-				price: Joi.number().required().min(0),
-				image: Joi.string().required(),
-				location: Joi.string().required(),
-				description: Joi.string().required()
-			}).required()
-		});
-		const { error } = campgroundSchema.validate(req.body);
-		if (error) {
-			const msg = error.details.map(el => el.message).join(',');
-			throw new ExpressError(msg, 400);
-		}
-		console.log(result);
 		const campground = new Campground(req.body.campground); // as usual we accept here an object, so body is an object
 		await campground.save();
 		res.redirect(`/campgrounds/${campground._id}`);
@@ -89,6 +85,7 @@ app.get(
 
 app.put(
 	'/campgrounds/:id',
+	validateCampground,
 	catchAsync(async (req, res) => {
 		const { id } = req.params;
 		const campground = await Campground.findByIdAndUpdate(id, { ...req.body.campground }, { new: true });
