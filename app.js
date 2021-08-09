@@ -5,6 +5,7 @@ const methodOverride = require('method-override');
 const Campground = require('./models/campground');
 const ejsMate = require('ejs-mate');
 const catchAsync = require('./utils/catchAsync');
+const ExpressError = require('./utils/ExpressError');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 	useNewUrlParser: true,
@@ -87,9 +88,16 @@ app.delete(
 	})
 );
 
+//if there is no such a route (endpoint)
+app.all('*', (req, res, next) => {
+	next(new ExpressError('Page Does Not Exist', 404));
+});
+
 //error handler, here we get through the @next@ func
 app.use((err, req, res, next) => {
-	res.send('Oh boy! Something went wrong!');
+	const { statusCode = 500 } = err;
+	if (!err.message) err.message = 'Oh shoot! Something went wrong';
+	res.status(statusCode).render('error', { err });
 });
 
 app.listen(3000, () => {
