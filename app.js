@@ -11,7 +11,8 @@ const reviews = require('./routes/reviews');
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 	useNewUrlParser: true,
 	useCreateIndex: true,
-	useUnifiedTopology: true
+	useUnifiedTopology: true,
+	useFindAndModify: false
 });
 
 const db = mongoose.connection;
@@ -29,6 +30,7 @@ mongoose.set('useFindAndModify', false); //avoid deprecation warnings
 
 app.use(express.urlencoded({ extended: true })); //parses data from HTML FORMS
 app.use(methodOverride('_method')); //prefix for method-override URL
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/campgrounds', campgrounds);
 //to have access to :id we use  (mergeParams: true) inside router file
