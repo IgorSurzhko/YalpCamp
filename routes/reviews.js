@@ -25,6 +25,7 @@ router.post(
 		campground.reviews.push(review);
 		await review.save();
 		await campground.save();
+		req.flash('success', 'Your review has been created successfully');
 		res.redirect(`/campgrounds/${campground._id}`);
 	})
 );
@@ -36,6 +37,7 @@ router.delete(
 		//$pull operator PULLS out of array of @reviews@ the document with @reviewId@
 		await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
 		await Review.findByIdAndDelete(reviewId);
+		req.flash('success', 'Your review has been deleted successfully');
 		res.redirect(`/campgrounds/${id}`);
 	})
 );
