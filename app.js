@@ -62,6 +62,7 @@ app.use((req, res, next) => {
 	//without passing it through the request as usual
 	res.locals.success = req.flash('success');
 	res.locals.error = req.flash('error');
+	res.locals.currentUser = req.user;
 	next();
 });
 
