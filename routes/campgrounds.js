@@ -31,9 +31,9 @@ router.get('/new', isLoggedIn, (req, res) => {
 
 router.get(
 	'/:id',
-
 	catchAsync(async (req, res) => {
-		const campground = await Campground.findById(req.params.id).populate('reviews');
+		//populate returns all info related to provided ID
+		const campground = await Campground.findById(req.params.id).populate('reviews').populate('author');
 		if (!campground) {
 			req.flash('error', 'There is no such campground!');
 			return res.redirect('/campgrounds');
@@ -48,6 +48,7 @@ router.post(
 	validateCampground,
 	catchAsync(async (req, res, next) => {
 		const campground = new Campground(req.body.campground); // as usual we accept here an object, so body is an object
+		campground.author = req.user._id;
 		await campground.save();
 		req.flash('success', 'Successfully made a new campground');
 		res.redirect(`/campgrounds/${campground._id}`);
