@@ -6,9 +6,13 @@ const ejsMate = require('ejs-mate');
 const ExpressError = require('./utils/ExpressError');
 const session = require('express-session');
 const flash = require('connect-flash');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
 
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const userRoutes = require('./routes/users');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 	useNewUrlParser: true,
@@ -28,7 +32,6 @@ const app = express();
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-mongoose.set('useFindAndModify', false); //avoid deprecation warnings
 
 app.use(express.urlencoded({ extended: true })); //parses data from HTML FORMS
 app.use(methodOverride('_method')); //prefix for method-override URL
@@ -47,6 +50,13 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
 	//locals gives us access to its locals.(xxx) INSIDE the template
 	//without passing it through the request as usual
@@ -55,9 +65,10 @@ app.use((req, res, next) => {
 	next();
 });
 
-app.use('/campgrounds', campgrounds);
+app.use('/', userRoutes);
+app.use('/campgrounds', campgroundRoutes);
 //to have access to :id we use  (mergeParams: true) inside router file
-app.use('/campgrounds/:id/reviews', reviews);
+app.use('/campgrounds/:id/reviews', reviewRoutes);
 
 app.get('/', (req, res) => {
 	res.render('home');
