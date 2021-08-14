@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const catchAsync = require('../utils/catchAsync');
 const Campground = require('../models/campground');
-const { isLoggedIn, isAuthor, validateCampground } = require('../utils/Authenticated');
+const { isLoggedIn, isAuthor, validateCampground } = require('../utils/middlewares');
 
 router.get(
 	'/',
@@ -20,7 +20,14 @@ router.get(
 	'/:id',
 	catchAsync(async (req, res) => {
 		//populate returns all info related to provided ID
-		const campground = await Campground.findById(req.params.id).populate('reviews').populate('author');
+		const campground = await Campground.findById(req.params.id)
+			.populate({
+				path: 'reviews',
+				populate: {
+					path: 'author'
+				}
+			})
+			.populate('author');
 		if (!campground) {
 			req.flash('error', 'There is no such campground!');
 			return res.redirect('/campgrounds');
