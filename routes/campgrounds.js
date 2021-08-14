@@ -12,7 +12,7 @@ router.get('/', catchAsync(campgrounds.index));
 
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
 
-router.post('/', isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
+router.post('/', isLoggedIn, upload.array('image'), validateCampground, catchAsync(campgrounds.createCampground));
 
 router.get('/:id', catchAsync(campgrounds.showCampground));
 
