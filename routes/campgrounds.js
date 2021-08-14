@@ -3,6 +3,10 @@ const router = express.Router();
 const campgrounds = require('../controllers/campgrounds');
 const catchAsync = require('../utils/catchAsync');
 const { isLoggedIn, isAuthor, validateCampground } = require('../utils/middlewares');
+//Multer is for handling multipart/form-data, used for uploading files
+const multer = require('multer');
+const { storage, cloudinary } = require('../cloudinary');
+const upload = multer({ storage });
 
 router.get('/', catchAsync(campgrounds.index));
 
