@@ -47,8 +47,11 @@ app.use(methodOverride('_method')); //prefix for method-override URL
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
+
 const sessionStore = MongoStore.create({
 	mongoUrl: process.env.DB_URL,
+	secret,
 	touchAfter: 24 * 60 * 60 // time period in seconds
 });
 
@@ -59,7 +62,7 @@ sessionStore.on('error', function () {
 const sessionConfig = {
 	store: sessionStore,
 	name: 'session',
-	secret: 'thisshouldbeabettersecret!',
+	secret,
 	resave: false,
 	saveUninitialized: true,
 	cookie: {
@@ -154,6 +157,7 @@ app.use((err, req, res, next) => {
 	res.status(statusCode).render('error', { err });
 });
 
-app.listen(3000, () => {
-	console.log('Serving on port 3000');
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+	console.log(`Serving on port: ${port}`);
 });
